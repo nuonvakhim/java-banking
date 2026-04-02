@@ -126,4 +126,85 @@ public class UserServiceImpl implements UserService {
                         .build())
                 .build();
     }
+
+    @Override
+    public BankResponse debitAccount(CreditDebitRequest request) {
+        boolean isAccountExist = userRepository.existsByAccountNumber(request.getAccountNumber());
+        if (!isAccountExist) {
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_EXISTS_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+        User userToDebit = userRepository.findByAccountNumber(request.getAccountNumber());
+        if (userToDebit.getAccountBalance().compareTo(request.getAmount()) < 0) {
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+        userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
+        userRepository.save(userToDebit);
+
+        return BankResponse.builder()
+                .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS)
+                .responseMessage(AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE)
+                .accountInfo(AccountInfo.builder()
+                        .accountName(userToDebit.getFirstName() + " " + userToDebit.getLastName() +" "+  userToDebit.getOtherNames())
+                        .accountBalance(userToDebit.getAccountBalance())
+                        .accountNumber(userToDebit.getAccountNumber())
+                        .build())
+                .build();
+    }
+    @Override
+    public BankResponse transfer(TransferRequest request) {
+        //get the account to debit (check if it exists)
+        //check if the amout I'm debiting is not more than the current balance
+
+        boolean isDestinationAccountExist = userRepository.existsByAccountNumber(request.getDestinationAccountNumber());
+        if (!isDestinationAccountExist) {
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_EXISTS_CODE)
+                    .responseMessage("Debit " + AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+        User sourceAccountUser = userRepository.findByAccountNumber(request.getSourceAccountNumber());
+        if (request.getAmount().compareTo(sourceAccountUser.getAccountBalance()) < 0) {
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+
+        }
+        sourceAccountUser.setAccountBalance(sourceAccountUser.getAccountBalance().subtract(request.getAmount()));
+        userRepository.save(sourceAccountUser);
+
+        EmailDetails debitAlert = EmailDetails.builder()
+                .recipient(sourceAccountUser.getEmail())
+                .subject("DEBIT ALERT")
+                .messageBody("The sum of " + request.getAmount() + " has been debited from your account. Your new balance is " + sourceAccountUser.getAccountBalance())
+                .build();
+        emailService.sendEmailAlert(debitAlert);
+
+        User destinationAccountUser = userRepository.findByAccountNumber(request.getDestinationAccountNumber());
+        destinationAccountUser.setAccountBalance(destinationAccountUser.getAccountBalance().add(request.getAmount()));
+        userRepository.save(destinationAccountUser);
+        EmailDetails creditAlert = EmailDetails.builder()
+                .recipient(destinationAccountUser.getEmail())
+                .subject("CREDIT ALERT")
+                .messageBody("The sum of " + request.getAmount() + " has been credited to your account. Your new balance is " + destinationAccountUser.getAccountBalance())
+                .build();
+
+        emailService.sendEmailAlert(creditAlert);
+
+        return BankResponse.builder()
+                .responseCode(AccountUtils.ACCOUNT_TRANSFERRED_SUCCESS)
+                .responseMessage(AccountUtils.ACCOUNT_TRANSFERRED_SUCCESS_MESSAGE)
+                .accountInfo(null)
+                .build();
+    }
 }
