@@ -1,10 +1,10 @@
 spring:
   application:
-    name: java-banking
+    name: java-bankingt
   datasource:
     url: jdbc:postgresql://db.prisma.io:5432/postgres?sslmode=require
-    username: 1d5cadb6a8895937c08d136117900e7dce8b057995524ae325d97398e631eb55
-    password: sk_dMkYJ_sTIPu-9nAdsvzOk
+    username: 4ed803fa41e5beaac89a25e9c7891c4d24fe6d3514fb039b19928319245201b2
+    password: sk_ufnwsiQm7mGQdBzLXivua
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -21,5 +21,14 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+  output:
+    ansi:
+      enabled: always
+    encoding: UTF-8
+app:
+  jwt-secret: bXlfc3VwZXJfc2VjcmV0X2tleV9mb3Jfand0X3Rva2VuX3NpZ25pbmdfMTIzNDU2Nzg5MA==
+  jwt-expiration: 86400000
 
-
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

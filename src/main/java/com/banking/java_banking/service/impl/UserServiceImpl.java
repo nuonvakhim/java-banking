@@ -1,31 +1,28 @@
 package com.banking.java_banking.service.impl;
 
 import com.banking.java_banking.dto.*;
+import com.banking.java_banking.entity.Role;
 import com.banking.java_banking.entity.User;
 import com.banking.java_banking.repository.UserRepository;
 import com.banking.java_banking.service.EmailService;
 import com.banking.java_banking.service.UserService;
 import com.banking.java_banking.utils.AccountUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    EmailService emailService;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public BankResponse createAccount(UserRequest userRequest) {
-        /**
-         * Creating an account - saving a new user to the database
-         * Check if user with email already exists
-         */
         if (userRepository.existsByEmail(userRequest.getEmail())) {
             return BankResponse.builder()
                     .responseCode(AccountUtils.ACCOUNT_EXISTS_CODE)
@@ -43,14 +40,15 @@ public class UserServiceImpl implements UserService {
                 .accountNumber(AccountUtils.generateAccountNumber())
                 .accountBalance(BigDecimal.ZERO)
                 .email(userRequest.getEmail())
+                .password(passwordEncoder.encode(userRequest.getPassword()))
                 .phoneNumber(userRequest.getPhoneNumber())
                 .alternativePhoneNumber(userRequest.getAlternativePhoneNumber())
                 .status("ACTIVE")
+                .role(Role.ROLE_USER)
                 .build();
 
         User savedUser = userRepository.save(newUser);
 
-        //send email
         EmailDetails emailDetails = EmailDetails.builder()
                 .recipient(savedUser.getEmail())
                 .subject("ACCOUNT CREATED")
@@ -72,7 +70,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public BankResponse balanceEnquiry(EnquiryRequest enquiryRequest) {
-        //Check if the provided account number exist in database
         boolean isAccountExist = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
         if (!isAccountExist) {
             return BankResponse.builder()
@@ -100,11 +97,9 @@ public class UserServiceImpl implements UserService {
         boolean isAccountExist = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
         if (!isAccountExist){
             return AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE;
-
         }
         User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
         return  foundUser.getFirstName() + " " + foundUser.getLastName();
-
     }
 
     @Override
@@ -119,9 +114,16 @@ public class UserServiceImpl implements UserService {
         }
         User userToCredit = userRepository.findByAccountNumber(request.getAccountNumber());
         userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(request.getAmount()));
+        userRepository.save(userToCredit);
 
-        return null;
+        return BankResponse.builder()
+                .responseCode(AccountUtils.ACCOUNT_CREDITED_SUCCESS)
+                .responseMessage(AccountUtils.ACCOUNT_CREDITED_SUCCESS_MESSAGE)
+                .accountInfo(AccountInfo.builder()
+                        .accountName(userToCredit.getFirstName() + " " + userToCredit.getLastName() +" "+  userToCredit.getOtherNames())
+                        .accountBalance(userToCredit.getAccountBalance())
+                        .accountNumber(userToCredit.getAccountNumber())
+                        .build())
+                .build();
     }
-
-
 }

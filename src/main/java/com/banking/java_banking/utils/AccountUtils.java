@@ -13,6 +13,8 @@ public class AccountUtils {
     public static final String ACCOUNT_NOT_EXIST_MESSAGE = "User with the provided account number does not exist";
     public static final String ACCOUNT_FOUND_CODE = "004";
     public static final String ACCOUNT_FOUND_SUCCESS = "User Account Found Successfully";
+    public static final String ACCOUNT_CREDITED_SUCCESS = "005";
+    public static final String ACCOUNT_CREDITED_SUCCESS_MESSAGE = "User Account has been credited successfully";
 
 
     Year currentYear = Year.now();

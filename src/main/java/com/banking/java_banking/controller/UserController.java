@@ -1,6 +1,7 @@
 package com.banking.java_banking.controller;
 
 import com.banking.java_banking.dto.BankResponse;
+import com.banking.java_banking.dto.CreditDebitRequest;
 import com.banking.java_banking.dto.EnquiryRequest;
 import com.banking.java_banking.dto.UserRequest;
 import com.banking.java_banking.service.UserService;
@@ -27,5 +28,10 @@ public class UserController {
     @GetMapping("nameEnquiry")
     public String nameEnquiry(@RequestBody EnquiryRequest enquiryRequest) {
         return  userService.nameEnquiry(enquiryRequest);
+    }
+
+    @PostMapping("credit")
+    public  BankResponse credit(@RequestBody CreditDebitRequest request) {
+        return userService.creditAccount(request);
     }
 }

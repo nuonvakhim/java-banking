@@ -7,7 +7,7 @@ import com.banking.java_banking.dto.UserRequest;
 
 
 public interface UserService {
-    BankResponse createAccount(UserRequest userRequest) ;
+    BankResponse createAccount(UserRequest userRequest);
 
     BankResponse balanceEnquiry(EnquiryRequest enquiryRequest) ;
     String nameEnquiry(EnquiryRequest enquiryRequest) ;
