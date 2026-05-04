@@ -8,6 +8,7 @@ import com.banking.java_banking.service.EmailService;
 import com.banking.java_banking.service.UserService;
 import com.banking.java_banking.utils.AccountUtils;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -171,8 +172,9 @@ public class UserServiceImpl implements UserService {
                     .accountInfo(null)
                     .build();
         }
+
         User sourceAccountUser = userRepository.findByAccountNumber(request.getSourceAccountNumber());
-        if (request.getAmount().compareTo(sourceAccountUser.getAccountBalance()) < 0) {
+        if (request.getAmount().compareTo(sourceAccountUser.getAccountBalance()) > 0) {
             return BankResponse.builder()
                     .responseCode(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_CODE)
                     .responseMessage(AccountUtils.ACCOUNT_INSUFFICIENT_BALANCE_MESSAGE)
@@ -181,6 +183,7 @@ public class UserServiceImpl implements UserService {
 
         }
         sourceAccountUser.setAccountBalance(sourceAccountUser.getAccountBalance().subtract(request.getAmount()));
+        String sourceUsername = sourceAccountUser.getFirstName() + sourceAccountUser.getLastName() + sourceAccountUser.getOtherNames();
         userRepository.save(sourceAccountUser);
 
         EmailDetails debitAlert = EmailDetails.builder()
@@ -192,6 +195,7 @@ public class UserServiceImpl implements UserService {
 
         User destinationAccountUser = userRepository.findByAccountNumber(request.getDestinationAccountNumber());
         destinationAccountUser.setAccountBalance(destinationAccountUser.getAccountBalance().add(request.getAmount()));
+        String recipientUsername = destinationAccountUser.getFirstName() + " "+destinationAccountUser.getLastName() +" "+ destinationAccountUser.getOtherNames();
         userRepository.save(destinationAccountUser);
         EmailDetails creditAlert = EmailDetails.builder()
                 .recipient(destinationAccountUser.getEmail())

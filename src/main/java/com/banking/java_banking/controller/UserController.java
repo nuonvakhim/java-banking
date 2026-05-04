@@ -1,12 +1,10 @@
 package com.banking.java_banking.controller;
 
-import com.banking.java_banking.dto.BankResponse;
-import com.banking.java_banking.dto.CreditDebitRequest;
-import com.banking.java_banking.dto.EnquiryRequest;
-import com.banking.java_banking.dto.UserRequest;
+import com.banking.java_banking.dto.*;
 import com.banking.java_banking.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping ("/api/v1/user")
@@ -38,5 +36,10 @@ public class UserController {
     @PostMapping("debit")
     public  BankResponse debit(@RequestBody CreditDebitRequest request) {
         return userService.debitAccount(request);
+    }
+
+    @PostMapping("transfer")
+    public BankResponse transfer(@RequestBody TransferRequest request){
+        return userService.transfer(request);
     }
 }

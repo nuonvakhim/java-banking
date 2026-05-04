@@ -22,9 +22,9 @@ public class OpenApiConfig {
                         .contact(new Contact()
                                 .name("Banking Team")
                                 .email("vakhim.dev@gmail.com")))
-                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new Components()
-                        .addSecuritySchemes("Bearer Authentication",
+                        .addSecuritySchemes("bearerAuth",
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)
                                         .bearerFormat("JWT")

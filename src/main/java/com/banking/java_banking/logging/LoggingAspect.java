@@ -4,12 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
 @Aspect
 @Component
+@Order(1)
 @Slf4j
 public class LoggingAspect {
 
@@ -45,13 +47,13 @@ public class LoggingAspect {
         String className = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = joinPoint.getSignature().getName();
 
-        log.debug(">>> [SERVICE] {}.{}() called", className, methodName);
+        log.info(">>> [SERVICE] {}.{}() called", className, methodName);
 
         long start = System.currentTimeMillis();
         try {
             Object result = joinPoint.proceed();
             long duration = System.currentTimeMillis() - start;
-            log.debug("<<< [SERVICE] {}.{}() completed in {}ms", className, methodName, duration);
+            log.info("<<< [SERVICE] {}.{}() completed in {}ms", className, methodName, duration);
             return result;
         } catch (Throwable ex) {
             long duration = System.currentTimeMillis() - start;
